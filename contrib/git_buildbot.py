@@ -41,6 +41,10 @@ from optparse import OptionParser
 
 master = "localhost:9989"
 
+# Category these changes should be marked as.  Maybe be set using 
+# --category on the command line.
+category = None
+
 # The GIT_DIR environment variable must have been set up so that any
 # git commands that are executed will operate on the repository we're
 # installed in.
@@ -119,6 +123,8 @@ def gen_changes(input, branch):
              'comments': m.group(2),
              'branch': branch,
         }
+        if category:
+            c['category'] = category
         grab_commit_info(c, m.group(1))
         changes.append(c)
 
@@ -165,6 +171,8 @@ def gen_update_branch_changes(oldrev, newrev, refname, branch):
              'branch': branch,
              'who': "dummy",
         }
+        if category:
+            c['category'] = category
         logging.info("Branch %s was rewound to %s" % (branch, baserev[:8]))
         files = []
         f = os.popen("git diff --raw %s..%s" % (oldrev, baserev), 'r')
@@ -256,6 +264,8 @@ def parse_options():
                    { 'master' : master })
     parser.add_option("-m", "--master", action="store", type="string",
             help=master_help)
+    parser.add_option("-c", "--category", action="store", type="string",
+            help="Mark changes as being in this category")
     options, args = parser.parse_args()
     return options
 
@@ -286,6 +296,9 @@ try:
 
     if options.master:
         master=options.master
+
+    if options.category:
+        category=options.category
 
     process_changes()
 except SystemExit:
